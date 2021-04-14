@@ -1,0 +1,46 @@
+name: C/C++ CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: configure
+      run: ./configure
+    - name: make
+      run: make
+    - name: make check
+      run: make check
+    - name: make distcheck
+      run: make distcheck
+const fs = require('fs')
+const path = require('path')
+const crypto = require('crypto')
+
+// Get an MD4 Digest Hex content hash, loosely based on Webpack `[contenthash]`
+function getContentHash (absFilePath) {
+  const buffer = fs.readFileSync(absFilePath)
+  const hash = crypto.createHash('md4')
+  hash.update(buffer)
+  return hash.digest('hex')
+}
+
+function getUrl (relFilePath) {
+  const absFilePath = path.join(process.cwd(), relFilePath)
+  return `/${relFilePath}?hash=${getContentHash(absFilePath)}`
+}
+
+module.exports = {
+  main: {
+    js: getUrl('dist/index.js'),
+    css: getUrl('dist/index.css')
+  }
+}
